@@ -1,0 +1,34 @@
+{
+  "name": "snova-flutter",
+  "version": "0.1.0",
+  "description": "Supernova exporter: design tokens to Flutter/Dart (semantic colors, theme-aware, hierarchical)",
+  "main": "dist/build.js",
+  "scripts": {
+    "dev": "npx webpack --mode=development --watch",
+    "build": "npx webpack --mode=production",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "gen": "ts-node scripts/run-local.ts"
+  },
+  "author": "apomazkin",
+  "license": "MIT",
+  "dependencies": {
+    "@supernovaio/export-helpers": "^1.0.33",
+    "@supernovaio/sdk-exporters": "2.4.8"
+  },
+  "overrides": {
+    "@supernovaio/sdk-exporters": "2.4.8"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.6.0",
+    "prettier": "3.0.3",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0",
+    "webpack": "5.88.2",
+    "webpack-cli": "^5.1.4",
+    "terser-webpack-plugin": "5.3.9"
+  }
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "key": "collectionName",
+    "type": "string",
+    "default": "Semantic Color",
+    "title": "Token collection to export",
+    "description": "Only tokens from the collection with this name are exported. Defaults to the semantic color collection."
+  },
+  {
+    "key": "generateDisclaimer",
+    "type": "boolean",
+    "default": true,
+    "title": "Show generated-file disclaimer",
+    "description": "When enabled, a comment noting that the file was generated automatically and should not be edited by hand is added to every generated file."
+  },
+  {
+    "key": "basePath",
+    "type": "string",
+    "default": "./kw",
+    "title": "Base output directory",
+    "description": "Base directory (relative to the export root) where generated files are placed."
+  },
+  {
+    "key": "colorPath",
+    "type": "string",
+    "default": "/colors",
+    "title": "Colors sub-path",
+    "description": "Sub-path under the base directory for the generated color file."
+  },
+  {
+    "key": "colorFileName",
+    "type": "string",
+    "default": "app_colors",
+    "title": "Color file name",
+    "description": "File name (without .dart extension) for the generated color file."
+  }
+]
