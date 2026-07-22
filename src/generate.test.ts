@@ -14,52 +14,37 @@ const config: GenerateColorsConfig = {
   basePath: "./kw",
   colorPath: "/colors",
   colorFileName: "app_colors",
+  rootClassName: "AppColors",
+  defaultThemeName: "Light",
 }
 
 describe("generateColors", () => {
-  it("собирает файл: импорт + классы темы, путь и имя из конфига", () => {
-    const themes: Array<ThemeTree<DartColorInput>> = [{ themeName: "Dark", tree: bgTree(white) }]
+  it("собирает файл: импорт + AppColors + классы тем, путь и имя из конфига", () => {
+    const themes: Array<ThemeTree<DartColorInput>> = [
+      { themeName: "Light", tree: bgTree(white) },
+      { themeName: "Dark", tree: bgTree(black) },
+    ]
     const file = generateColors(themes, config)
 
     expect(file.relativePath).toBe("./kw/colors")
     expect(file.fileName).toBe("app_colors.dart")
-    expect(file.content).toBe(
-      [
-        "import 'package:flutter/material.dart';",
-        "",
-        "class Dark {",
-        "  const Dark._();",
-        "",
-        "  static const bg = _DarkBg._();",
-        "}",
-        "",
-        "class _DarkBg {",
-        "  const _DarkBg._();",
-        "",
-        "  final Color primary = const Color(0xFFFFFFFF);",
-        "}",
-        "",
-      ].join("\n"),
-    )
+    expect(file.content.startsWith("import 'package:flutter/material.dart';")).toBe(true)
+    expect(file.content).toContain("class AppColors {")
+    expect(file.content).toContain("static const bg = _LightBg._();") // дефолт Light
+    expect(file.content).toContain("static const dark = _Dark._();")
+    expect(file.content).toContain("static const light = _Light._();")
+    expect(file.content).toContain("final Color primary = const Color(0xFFFFFFFF);") // light bg.primary
+    expect(file.content).toContain("final Color primary = const Color(0xFF000000);") // dark bg.primary
   })
 
   it("добавляет дисклеймер, когда включён", () => {
-    const themes: Array<ThemeTree<DartColorInput>> = [{ themeName: "Dark", tree: bgTree(white) }]
+    const themes: Array<ThemeTree<DartColorInput>> = [{ themeName: "Light", tree: bgTree(white) }]
     const file = generateColors(themes, { ...config, generateDisclaimer: true })
     expect(file.content.startsWith("//")).toBe(true)
     expect(file.content).toContain("import 'package:flutter/material.dart';")
   })
 
-  it("сортирует темы по имени (детерминизм)", () => {
-    const themes: Array<ThemeTree<DartColorInput>> = [
-      { themeName: "Light", tree: bgTree(white) },
-      { themeName: "Dark", tree: bgTree(black) },
-    ]
-    const out = generateColors(themes, config).content
-    expect(out.indexOf("class Dark")).toBeLessThan(out.indexOf("class Light"))
-  })
-
-  it("несколько тем не конфликтуют по именам вложенных классов", () => {
+  it("темы не конфликтуют по именам вложенных классов", () => {
     const themes: Array<ThemeTree<DartColorInput>> = [
       { themeName: "Dark", tree: bgTree(black) },
       { themeName: "Light", tree: bgTree(white) },

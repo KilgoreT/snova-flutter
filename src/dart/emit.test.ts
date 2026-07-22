@@ -1,73 +1,89 @@
-import { emitTheme, ValueRenderer } from "./emit"
-import { Tree } from "../tree/tree"
+import { emitThemes, ValueRenderer } from "./emit"
+import { ThemeTree } from "../generate"
 
-// Стаб-рендерер значения: значение токена — уже готовое hex-тело, оборачиваем в Color(...).
 const renderColor: ValueRenderer<string> = (v) => ({ type: "Color", expr: `Color(${v})` })
 
 const group = (id: string, name: string, groups: any[] = [], tokens: any[] = []) => ({ id, name, groups, tokens })
 const token = (id: string, name: string, value: string) => ({ id, name, value })
 
-describe("emitTheme", () => {
-  it("пустая тема → только корневой класс с приватным конструктором", () => {
-    const tree: Tree<string> = { roots: [] }
-    expect(emitTheme("Dark", tree, renderColor)).toBe(["class Dark {", "  const Dark._();", "}"].join("\n"))
-  })
+const bgTree = (primary: string): ThemeTree<string>["tree"] => ({
+  roots: [group("g1", "bg", [], [token("t1", "primary", primary)])],
+})
 
-  it("одна группа с одним токеном → корневой static const + вложенный класс", () => {
-    const tree: Tree<string> = { roots: [group("g1", "bg", [], [token("t1", "primary", "0xFFFFFFFF")])] }
+describe("emitThemes", () => {
+  it("строит AppColors: шорткаты дефолтной темы + инстансы всех тем, и приватные классы тем", () => {
+    const themes: Array<ThemeTree<string>> = [
+      { themeName: "Light", tree: bgTree("0x1") },
+      { themeName: "Dark", tree: bgTree("0x2") },
+    ]
     const expected = [
-      "class Dark {",
-      "  const Dark._();",
+      "class AppColors {",
+      "  const AppColors._();",
       "",
-      "  static const bg = _DarkBg._();",
+      "  static const bg = _LightBg._();",
+      "  static const dark = _Dark._();",
+      "  static const light = _Light._();",
+      "}",
+      "",
+      "class _Dark {",
+      "  const _Dark._();",
+      "",
+      "  final _DarkBg bg = const _DarkBg._();",
       "}",
       "",
       "class _DarkBg {",
       "  const _DarkBg._();",
       "",
-      "  final Color primary = const Color(0xFFFFFFFF);",
+      "  final Color primary = const Color(0x2);",
+      "}",
+      "",
+      "class _Light {",
+      "  const _Light._();",
+      "",
+      "  final _LightBg bg = const _LightBg._();",
+      "}",
+      "",
+      "class _LightBg {",
+      "  const _LightBg._();",
+      "",
+      "  final Color primary = const Color(0x1);",
       "}",
     ].join("\n")
-    expect(emitTheme("Dark", tree, renderColor)).toBe(expected)
+    expect(emitThemes("AppColors", themes, "Light", renderColor)).toBe(expected)
   })
 
-  it("многоуровневая вложенность даёт точечный путь Dark.bg.brand.zelenyi", () => {
-    const tree: Tree<string> = {
-      roots: [group("g1", "bg", [group("g2", "brand", [], [token("t1", "zelenyi", "0xFF21260A")])], [])],
-    }
-    const out = emitTheme("Dark", tree, renderColor)
-    expect(out).toContain("static const bg = _DarkBg._();")
-    expect(out).toContain("final _DarkBgBrand brand = const _DarkBgBrand._();")
-    expect(out).toContain("final Color zelenyi = const Color(0xFF21260A);")
+  it("шорткат без темы указывает на классы дефолтной темы (Light), dark/sepia — только через тему", () => {
+    const themes: Array<ThemeTree<string>> = [
+      { themeName: "Light", tree: bgTree("0x1") },
+      { themeName: "Dark", tree: bgTree("0x2") },
+      { themeName: "Sepia", tree: bgTree("0x3") },
+    ]
+    const out = emitThemes("AppColors", themes, "Light", renderColor)
+    expect(out).toContain("static const bg = _LightBg._();") // AppColors.bg → Light
+    expect(out).toContain("static const light = _Light._();")
+    expect(out).toContain("static const dark = _Dark._();")
+    expect(out).toContain("static const sepia = _Sepia._();")
+    // нет статик-шортката dark/sepia групп на корне (только через тему)
+    expect(out).not.toContain("static const bg = _DarkBg._();")
+    expect(out).not.toContain("static const bg = _SepiaBg._();")
   })
 
-  it("сортирует поля по алфавиту (детерминизм)", () => {
-    const tree: Tree<string> = { roots: [group("z", "text"), group("a", "bg")] }
-    const out = emitTheme("Dark", tree, renderColor)
-    expect(out.indexOf("static const bg")).toBeLessThan(out.indexOf("static const text"))
+  it("уважает кастомное имя корня и другую дефолтную тему", () => {
+    const themes: Array<ThemeTree<string>> = [
+      { themeName: "Light", tree: bgTree("0x1") },
+      { themeName: "Dark", tree: bgTree("0x2") },
+    ]
+    const out = emitThemes("Palette", themes, "Dark", renderColor)
+    expect(out).toContain("class Palette {")
+    expect(out).toContain("static const bg = _DarkBg._();") // дефолт теперь Dark
   })
 
-  it("детерминированно разводит коллизию одинаковых имён токенов", () => {
-    const tree: Tree<string> = {
-      roots: [group("g1", "bg", [], [token("t1", "primary", "0x1"), token("t2", "primary", "0x2")])],
-    }
-    const out = emitTheme("Dark", tree, renderColor)
-    expect(out).toContain("final Color primary = const Color(0x1);")
-    expect(out).toContain("final Color primary2 = const Color(0x2);")
-  })
-
-  it("разводит коллизию между группой и токеном с одинаковым именем", () => {
-    const tree: Tree<string> = {
-      roots: [group("g1", "bg", [group("g2", "brand")], [token("t1", "brand", "0x9")])],
-    }
-    const out = emitTheme("Dark", tree, renderColor)
-    // одно из имён получает суффикс, оба присутствуют, класс подгруппы согласован с полем
-    expect(out).toMatch(/brand2?\b/)
-    expect(out).toContain("const Color(0x9)")
-  })
-
-  it("применяет имя темы как корневой класс (PascalCase)", () => {
-    const tree: Tree<string> = { roots: [group("g1", "bg")] }
-    expect(emitTheme("light", tree, renderColor)).toContain("class Light {")
+  it("если дефолтной темы нет среди экспортируемых — берёт первую по алфавиту", () => {
+    const themes: Array<ThemeTree<string>> = [
+      { themeName: "Light", tree: bgTree("0x1") },
+      { themeName: "Dark", tree: bgTree("0x2") },
+    ]
+    const out = emitThemes("AppColors", themes, "Nonexistent", renderColor)
+    expect(out).toContain("static const bg = _DarkBg._();") // Dark — первая по алфавиту
   })
 })

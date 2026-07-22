@@ -21,4 +21,10 @@ export type ExporterConfiguration = {
 
   /** File name (without extension) for the generated color file, e.g. "app_colors". */
   colorFileName: string
+
+  /** Name of the public root class, e.g. "AppColors". */
+  rootClassName: string
+
+  /** Theme reachable without naming it (root shortcuts), e.g. "Light". */
+  defaultThemeName: string
 }

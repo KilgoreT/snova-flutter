@@ -56,6 +56,8 @@ const file = buildColorFile("Semantic Color", collections, groups, themes, {
   basePath: "./packages/ui_kit_litnet_audio/lib/sam",
   colorPath: "/colors",
   colorFileName: "app_colors",
+  rootClassName: "AppColors",
+  defaultThemeName: "Light",
 })
 
 // --- Запись в output/ ---

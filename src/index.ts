@@ -100,6 +100,8 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     basePath: exportConfiguration.basePath,
     colorPath: exportConfiguration.colorPath,
     colorFileName: exportConfiguration.colorFileName,
+    rootClassName: exportConfiguration.rootClassName,
+    defaultThemeName: exportConfiguration.defaultThemeName,
   })
 
   return [

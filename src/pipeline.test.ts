@@ -35,6 +35,8 @@ const config: GenerateColorsConfig = {
   basePath: "./kw",
   colorPath: "/colors",
   colorFileName: "app_colors",
+  rootClassName: "AppColors",
+  defaultThemeName: "Light",
 }
 
 describe("buildColorFile (сквозной конвейер)", () => {
@@ -51,19 +53,22 @@ describe("buildColorFile (сквозной конвейер)", () => {
     ]
     const file = buildColorFile("Semantic Color", collections, groups, themes, config)
 
-    // темы как верхний уровень, вложенность bg.brand.zelenyi
-    expect(file.content).toContain("class Dark {")
-    expect(file.content).toContain("class Light {")
+    // единый корень AppColors + приватные классы тем, вложенность bg.brand.zelenyi
+    expect(file.content).toContain("class AppColors {")
+    expect(file.content).toContain("class _Dark {")
+    expect(file.content).toContain("class _Light {")
     expect(file.content).toContain("final _DarkBgBrand brand = const _DarkBgBrand._();")
     expect(file.content).toContain("final Color zelenyi = const Color(0xFF21260A);")
     expect(file.content).toContain("final Color zelenyi = const Color(0xFFC8DC78);")
 
+    // шорткат без темы указывает на Light (дефолт)
+    expect(file.content).toContain("static const bg = _LightBg._();")
+    expect(file.content).toContain("static const dark = _Dark._();")
+    expect(file.content).toContain("static const light = _Light._();")
+
     // примитивы из другой коллекции исключены
     expect(file.content).not.toContain("primitives")
     expect(file.content).not.toContain("green500")
-
-    // детерминизм: Dark раньше Light
-    expect(file.content.indexOf("class Dark")).toBeLessThan(file.content.indexOf("class Light"))
   })
 
   it("бросает ошибку на несуществующую коллекцию", () => {

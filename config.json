@@ -33,5 +33,19 @@
     "default": "app_colors",
     "title": "Color file name",
     "description": "File name (without .dart extension) for the generated color file."
+  },
+  {
+    "key": "rootClassName",
+    "type": "string",
+    "default": "AppColors",
+    "title": "Root class name",
+    "description": "Name of the public root class. Access default-theme colors as RootClass.bg.brand.primary and any theme as RootClass.dark.bg...."
+  },
+  {
+    "key": "defaultThemeName",
+    "type": "string",
+    "default": "Light",
+    "title": "Default theme",
+    "description": "Theme reachable directly on the root class without naming it (e.g. AppColors.bg == this theme). Other themes are reachable only via RootClass.<theme>."
   }
 ]
