@@ -111,11 +111,25 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     colorFileName: exportConfiguration.colorFileName,
   })
 
+  // ВРЕМЕННАЯ диагностика: пишем прямо в шапку файла, т.к. console.log в лог Supernova не попадает.
+  const debugLines = themes.map((th) => {
+    const colorOverrides = th.overriddenTokens.filter((t) => t.tokenType === TokenType.color).length
+    const sample = th.overriddenTokens[0]
+    return `//   ${th.name}: ${th.overriddenTokens.length} overrides, ${colorOverrides} color, sampleType=${sample?.tokenType ?? "n/a"}, sampleCollectionId=${sample?.collectionId ?? "n/a"}`
+  })
+  const debugBlock = [
+    `// [snova-debug] target collection id=${collection.id} persistentId=${collection.persistentId}`,
+    `// [snova-debug] themes fetched=${themes.length}, exported=${themesToExport.length}`,
+    ...debugLines,
+    "",
+    "",
+  ].join("\n")
+
   return [
     FileHelper.createTextFile({
       relativePath: file.relativePath,
       fileName: file.fileName,
-      content: file.content,
+      content: debugBlock + file.content,
     }),
   ]
 })
