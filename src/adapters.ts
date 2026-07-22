@@ -75,9 +75,12 @@ export function themeOverridesCollectionColors(
   collection: { id: string; persistentId: string },
   colorType: string,
 ): boolean {
-  return overriddenTokens.some(
-    (t) => t.tokenType === colorType && (t.collectionId === collection.id || t.collectionId === collection.persistentId),
-  )
+  return overriddenTokens.some((t) => {
+    if (t.tokenType !== colorType) return false
+    // Если у override не проставлена коллекция — не режем вслепую, считаем релевантным цветом.
+    if (t.collectionId === null) return true
+    return t.collectionId === collection.id || t.collectionId === collection.persistentId
+  })
 }
 
 /** Маппит цветовые токены SDK в FlatToken ядра с извлечённым DartColorInput. */

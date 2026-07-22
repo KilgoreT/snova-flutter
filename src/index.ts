@@ -72,19 +72,34 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
   // Отсекаем темы, не переопределяющие цвета целевой коллекции (напр. Desktop/Mobile для размеров).
   const collection = findCollection(collections, exportConfiguration.collectionName)
-  const relevantThemes = themes.filter((th) =>
-    themeOverridesCollectionColors(th.overriddenTokens, collection, TokenType.color),
-  )
-  const skipped = themes.filter((th) => !relevantThemes.includes(th))
-  if (skipped.length > 0) {
+
+  // Диагностика формы overriddenTokens (видно в логе экспорта).
+  for (const th of themes) {
+    const colorOverrides = th.overriddenTokens.filter((t) => t.tokenType === TokenType.color).length
+    const sampleCollectionId = th.overriddenTokens[0]?.collectionId ?? "n/a"
     console.log(
-      `[snova-flutter] Skipping ${skipped.length} theme(s) with no color overrides in "${exportConfiguration.collectionName}": ${skipped
-        .map((t) => t.name)
-        .join(", ")}`,
+      `[snova-flutter] theme "${th.name}": ${th.overriddenTokens.length} overrides, ${colorOverrides} color; sample collectionId=${sampleCollectionId} (target ${collection.id} / ${collection.persistentId})`,
     )
   }
 
-  const themeColorTokens: Array<ThemeColorTokens> = relevantThemes.map((theme) => {
+  const relevantThemes = themes.filter((th) =>
+    themeOverridesCollectionColors(th.overriddenTokens, collection, TokenType.color),
+  )
+
+  // Страховка: фильтр НИКОГДА не должен обнулять вывод. Если отсёк всё — экспортируем все темы.
+  const themesToExport = relevantThemes.length > 0 ? relevantThemes : themes
+  if (relevantThemes.length === 0 && themes.length > 0) {
+    console.log(
+      `[snova-flutter] Color-override filter matched 0 of ${themes.length} themes — falling back to ALL themes so colors are not lost.`,
+    )
+  } else {
+    const skipped = themes.filter((th) => !themesToExport.includes(th))
+    if (skipped.length > 0) {
+      console.log(`[snova-flutter] Skipping ${skipped.length} theme(s) with no color overrides: ${skipped.map((t) => t.name).join(", ")}`)
+    }
+  }
+
+  const themeColorTokens: Array<ThemeColorTokens> = themesToExport.map((theme) => {
     const themed = sdk.tokens.computeTokensByApplyingThemes(allTokens, allTokens, [theme])
     return { name: theme.name, tokens: toRawColorTokens(themed) }
   })

@@ -57,9 +57,14 @@ describe("themeOverridesCollectionColors", () => {
     expect(themeOverridesCollectionColors([{ tokenType: "Color", collectionId: "p1" }], collection, "Color")).toBe(true)
   })
 
+  it("true для цветового оверрайда с непроставленной коллекцией (не режем вслепую)", () => {
+    expect(themeOverridesCollectionColors([{ tokenType: "Color", collectionId: null }], collection, "Color")).toBe(true)
+  })
+
   it("false для тем без цветовых оверрайдов в этой коллекции (Desktop/Mobile)", () => {
     expect(themeOverridesCollectionColors([{ tokenType: "Dimension", collectionId: "c1" }], collection, "Color")).toBe(false)
     expect(themeOverridesCollectionColors([{ tokenType: "Color", collectionId: "c2" }], collection, "Color")).toBe(false)
+    expect(themeOverridesCollectionColors([{ tokenType: "Dimension", collectionId: null }], collection, "Color")).toBe(false)
     expect(themeOverridesCollectionColors([], collection, "Color")).toBe(false)
   })
 })
