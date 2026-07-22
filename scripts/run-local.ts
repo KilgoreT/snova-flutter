@@ -53,7 +53,7 @@ const themes: ThemeColorTokens[] = [
 
 const file = buildColorFile("Semantic Color", collections, groups, themes, {
   generateDisclaimer: true,
-  basePath: "./kw",
+  basePath: "./ui_kit_core/packages/ui_kit_litnet_audio/lib/sam",
   colorPath: "/colors",
   colorFileName: "app_colors",
 })

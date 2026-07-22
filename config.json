@@ -16,9 +16,9 @@
   {
     "key": "basePath",
     "type": "string",
-    "default": "./kw",
+    "default": "./ui_kit_core/packages/ui_kit_litnet_audio/lib/sam",
     "title": "Base output directory",
-    "description": "Base directory (relative to the export root) where generated files are placed."
+    "description": "Base directory (relative to the export root) where generated files are placed. Per-token-type files go into sub-paths under it."
   },
   {
     "key": "colorPath",
