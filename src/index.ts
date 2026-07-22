@@ -73,15 +73,6 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   // Отсекаем темы, не переопределяющие цвета целевой коллекции (напр. Desktop/Mobile для размеров).
   const collection = findCollection(collections, exportConfiguration.collectionName)
 
-  // Диагностика формы overriddenTokens (видно в логе экспорта).
-  for (const th of themes) {
-    const colorOverrides = th.overriddenTokens.filter((t) => t.tokenType === TokenType.color).length
-    const sampleCollectionId = th.overriddenTokens[0]?.collectionId ?? "n/a"
-    console.log(
-      `[snova-flutter] theme "${th.name}": ${th.overriddenTokens.length} overrides, ${colorOverrides} color; sample collectionId=${sampleCollectionId} (target ${collection.id} / ${collection.persistentId})`,
-    )
-  }
-
   const relevantThemes = themes.filter((th) =>
     themeOverridesCollectionColors(th.overriddenTokens, collection, TokenType.color),
   )
@@ -111,25 +102,11 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     colorFileName: exportConfiguration.colorFileName,
   })
 
-  // ВРЕМЕННАЯ диагностика: пишем прямо в шапку файла, т.к. console.log в лог Supernova не попадает.
-  const debugLines = themes.map((th) => {
-    const colorOverrides = th.overriddenTokens.filter((t) => t.tokenType === TokenType.color).length
-    const sample = th.overriddenTokens[0]
-    return `//   ${th.name}: ${th.overriddenTokens.length} overrides, ${colorOverrides} color, sampleType=${sample?.tokenType ?? "n/a"}, sampleCollectionId=${sample?.collectionId ?? "n/a"}`
-  })
-  const debugBlock = [
-    `// [snova-debug] target collection id=${collection.id} persistentId=${collection.persistentId}`,
-    `// [snova-debug] themes fetched=${themes.length}, exported=${themesToExport.length}`,
-    ...debugLines,
-    "",
-    "",
-  ].join("\n")
-
   return [
     FileHelper.createTextFile({
       relativePath: file.relativePath,
       fileName: file.fileName,
-      content: debugBlock + file.content,
+      content: file.content,
     }),
   ]
 })
