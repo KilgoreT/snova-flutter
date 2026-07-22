@@ -13,7 +13,7 @@ export type ExporterConfiguration = {
   /** When enabled, prepend an auto-generated disclaimer comment to every generated file. */
   generateDisclaimer: boolean
 
-  /** Base output directory for generated files, e.g. "./ui_kit_core/packages/ui_kit_litnet_audio/lib/sam". */
+  /** Base output directory (relative to repo root; repo root itself must NOT be included), e.g. "./packages/ui_kit_litnet_audio/lib/sam". */
   basePath: string
 
   /** Sub-path (relative to basePath) for the color file, e.g. "/colors". */
