@@ -1,6 +1,6 @@
 {
   "name": "snova-flutter",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Supernova exporter: design tokens to Flutter/Dart (semantic colors, theme-aware, hierarchical)",
   "main": "dist/build.js",
   "scripts": {

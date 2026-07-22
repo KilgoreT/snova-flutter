@@ -9,7 +9,7 @@ import {
 } from "@supernovaio/sdk-exporters"
 import { FileHelper } from "@supernovaio/export-helpers"
 import { ExporterConfiguration } from "../config"
-import { RawColorToken, RawGroup } from "./adapters"
+import { findCollection, RawColorToken, RawGroup, themeOverridesCollectionColors } from "./adapters"
 import { buildColorFile, ThemeColorTokens } from "./pipeline"
 
 /** SDK-токены → минимальные RawColorToken ядра (только цвет). */
@@ -70,7 +70,21 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     themes = themes.filter((th) => wanted.includes(th.id) || wanted.includes(th.idInVersion))
   }
 
-  const themeColorTokens: Array<ThemeColorTokens> = themes.map((theme) => {
+  // Отсекаем темы, не переопределяющие цвета целевой коллекции (напр. Desktop/Mobile для размеров).
+  const collection = findCollection(collections, exportConfiguration.collectionName)
+  const relevantThemes = themes.filter((th) =>
+    themeOverridesCollectionColors(th.overriddenTokens, collection, TokenType.color),
+  )
+  const skipped = themes.filter((th) => !relevantThemes.includes(th))
+  if (skipped.length > 0) {
+    console.log(
+      `[snova-flutter] Skipping ${skipped.length} theme(s) with no color overrides in "${exportConfiguration.collectionName}": ${skipped
+        .map((t) => t.name)
+        .join(", ")}`,
+    )
+  }
+
+  const themeColorTokens: Array<ThemeColorTokens> = relevantThemes.map((theme) => {
     const themed = sdk.tokens.computeTokensByApplyingThemes(allTokens, allTokens, [theme])
     return { name: theme.name, tokens: toRawColorTokens(themed) }
   })

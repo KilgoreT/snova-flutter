@@ -60,6 +60,26 @@ export interface RawColorToken {
   value: { color: { r: number; g: number; b: number }; opacity: { measure: number } }
 }
 
+export interface RawOverriddenToken {
+  tokenType: string
+  collectionId: string | null
+}
+
+/**
+ * Тема релевантна экспорту цветов, только если она реально переопределяет хотя бы один
+ * цветовой токен целевой коллекции. Отсекает темы ДС для других типов (напр. Desktop/Mobile
+ * для размеров/типографики), которые иначе дали бы пустые дублирующие классы.
+ */
+export function themeOverridesCollectionColors(
+  overriddenTokens: Array<RawOverriddenToken>,
+  collection: { id: string; persistentId: string },
+  colorType: string,
+): boolean {
+  return overriddenTokens.some(
+    (t) => t.tokenType === colorType && (t.collectionId === collection.id || t.collectionId === collection.persistentId),
+  )
+}
+
 /** Маппит цветовые токены SDK в FlatToken ядра с извлечённым DartColorInput. */
 export function toColorFlatTokens(tokens: Array<RawColorToken>): Array<FlatToken<DartColorInput>> {
   return tokens.map((t) => ({

@@ -1,4 +1,11 @@
-import { flattenGroups, findCollection, tokensInCollection, toColorFlatTokens, RawGroup } from "./adapters"
+import {
+  flattenGroups,
+  findCollection,
+  tokensInCollection,
+  toColorFlatTokens,
+  themeOverridesCollectionColors,
+  RawGroup,
+} from "./adapters"
 
 describe("flattenGroups", () => {
   it("исключает isRoot-группы и переподвешивает их детей на верхний уровень", () => {
@@ -39,6 +46,21 @@ describe("tokensInCollection", () => {
     ]
     const result = tokensInCollection(tokens, { id: "c1", persistentId: "p1" })
     expect(result.map((t) => t.id)).toEqual(["t1", "t2"])
+  })
+})
+
+describe("themeOverridesCollectionColors", () => {
+  const collection = { id: "c1", persistentId: "p1" }
+
+  it("true, если тема оверрайдит цветовой токен коллекции (по id или persistentId)", () => {
+    expect(themeOverridesCollectionColors([{ tokenType: "Color", collectionId: "c1" }], collection, "Color")).toBe(true)
+    expect(themeOverridesCollectionColors([{ tokenType: "Color", collectionId: "p1" }], collection, "Color")).toBe(true)
+  })
+
+  it("false для тем без цветовых оверрайдов в этой коллекции (Desktop/Mobile)", () => {
+    expect(themeOverridesCollectionColors([{ tokenType: "Dimension", collectionId: "c1" }], collection, "Color")).toBe(false)
+    expect(themeOverridesCollectionColors([{ tokenType: "Color", collectionId: "c2" }], collection, "Color")).toBe(false)
+    expect(themeOverridesCollectionColors([], collection, "Color")).toBe(false)
   })
 })
 
